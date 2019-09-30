@@ -84,8 +84,8 @@ def search_iphone():
                 if STORES_STOCK.setdefault(model_name, {}).setdefault(store_name, {}).get('stock', False) is False and stock is True:
                     # 发送微信消息
                     msg = '发现库存，{0}，{1}, {2}'.format(store_name, model_name, now.strftime('%Y-%m-%d %H:%M:%S'))
-                    # r.get('http://sc.ftqq.com/{}.send?text={}已经有库存&desp={}'.format(
-                    #     current_config.SEC_KEY, store_name, msg))
+                    r.get('http://sc.ftqq.com/{}.send?text={}已经有库存&desp={}'.format(
+                        current_config.SEC_KEY, store_name, msg))
                     # 写入日志
                     logging.info(msg)
                 # 库存从有到无时记录日志
