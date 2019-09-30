@@ -24,9 +24,6 @@ APPLE_STORES = {}
 # 缓存库存数据
 STORES_STOCK = {}
 
-# 最后打印没有库存时间
-LAST_LOGGING_TAG = True
-
 # 接口数据最后更新时间
 LAST_AVAILABILITY_UPDATED = 0
 
@@ -134,8 +131,6 @@ if __name__ == '__main__':
             LAST_AVAILABILITY_UPDATED = availability_updated
             LAST_LOGGING_TAG = False
             sleep(10)
-        elif LAST_LOGGING_TAG is False:
-            logging.info(' 数据不变')
-            LAST_LOGGING_TAG = True
+        else:
             sleep(1)
 
