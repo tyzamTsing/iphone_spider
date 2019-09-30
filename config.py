@@ -23,7 +23,7 @@ class CommonConfig(BaseConfig):
     APPLE_STORES_URL = 'https://reserve-prime.apple.com/CN/zh_CN/reserve/A/stores.json'
     # iPhone库存
     IPHONE_MODELS_URL = 'https://reserve-prime.apple.com/CN/zh_CN/reserve/A/availability.json'
-    # iPhone 型号
+    # 部分 iPhone 型号
     MODELS = {
         'MWD92CH/A': 'iPhone 11 Pro 深空灰 64GB',
         'MWDD2CH/A': 'iPhone 11 Pro 暗夜绿 64GB',
