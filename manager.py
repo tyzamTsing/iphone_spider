@@ -7,6 +7,7 @@
 import os
 import logging
 from time import sleep
+from retry import retry
 from extensions import r
 from datetime import datetime
 from config import current_config
@@ -17,11 +18,14 @@ __author__ = 'BlackMatrix'
 # 初始化日志配置文件
 log_init(file=os.path.abspath('logging.cfg'))
 
-SEND_MSG_TIME = {}
-
+# Apple Store数据
 APPLE_STORES = {}
 
+# 缓存库存数据
 STORES_STOCK = {}
+
+# 最后打印没有库存时间
+LAST_LOGGING_TIME = datetime.now()
 
 
 def get_apple_stores(select_city=None):
@@ -65,6 +69,7 @@ def get_model_name(part_num):
             return model_name
 
 
+@retry(Exception, tries=5, delay=5)
 def search_iphone():
     availability = r.get(current_config['IPHONE_MODELS_URL']).json()
     # 获取目标商店
@@ -81,33 +86,34 @@ def search_iphone():
                 # 获取商品型号在店内的库存
                 stock = availability['stores'][store][model_number]['availability']['unlocked']
                 now = datetime.now()
+                # 库存有变化才推送消息
                 if STORES_STOCK.setdefault(model_name, {}).setdefault(store_name, {}).get('stock', False) is False and stock is True:
                     # 发送微信消息
-                    msg = '发现库存，{0}，{1}, {2}'.format(store_name, model_name, now.strftime('%Y-%m-%d %H:%M:%S'))
-                    r.get('http://sc.ftqq.com/{}.send?text={}已经有库存&desp={}'.format(
-                        current_config.SEC_KEY, store_name, msg))
+                    msg = '√ 发现库存，{0}，{1}'.format(model_name, store_name)
+                    if current_config.DEBUG is False:
+                        r.get('http://sc.ftqq.com/{}.send?text={}已经有库存&desp={}，{}'.format(
+                            current_config.SEC_KEY, store_name, msg, now.strftime('%Y-%m-%d %H:%M:%S')))
                     # 写入日志
                     logging.info(msg)
                 # 库存从有到无时记录日志
                 elif STORES_STOCK.setdefault(model_name, {}).setdefault(store_name, {}).get('stock') is True and stock is False:
-                    msg = '库存售完，{0}，{1}，{2}'.format(store_name, model_name, now.strftime('%Y-%m-%d %H:%M:%S'))
+                    msg = '× 库存售完，{0}，{1}'.format(model_name, store_name)
                     # 写入日志
                     logging.info(msg)
                 # 修改全局变量中的库存状态
                 STORES_STOCK.setdefault(model_name, {}).setdefault(store_name, {}).update({'stock': stock, 'time': now})
         else:
-            logging.info('库存没有变化')
+            global LAST_LOGGING_TIME
+            now = datetime.now()
+            if (now - LAST_LOGGING_TIME).seconds > 60:
+                LAST_LOGGING_TIME = now
+                logging.info(' 近期库存没有变化')
 
 
-def start():
-    logging.info('开始监控设备库存信息')
-    search_iphone()
-    sleep(2)
+if __name__ == '__main__':
+    logging.info(' 开始监控设备库存信息')
     # 在有效的时间段内才查询库存
     while current_config.DEBUG or current_config['WATCH_START'] <= datetime.now().time() <= current_config['WATCH_END']:
         search_iphone()
         sleep(2)
 
-
-if __name__ == '__main__':
-    start()
