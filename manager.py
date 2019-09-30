@@ -135,7 +135,7 @@ if __name__ == '__main__':
             LAST_LOGGING_TAG = False
             sleep(10)
         elif LAST_LOGGING_TAG is False:
-        logging.info(' 数据不变')
+            logging.info(' 数据不变')
             LAST_LOGGING_TAG = True
             sleep(1)
 
