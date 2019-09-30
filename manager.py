@@ -111,7 +111,7 @@ def search_iphone():
 
 
 if __name__ == '__main__':
-    logging.info(' 开始监控设备库存信息')
+    logging.info(' 开始监控库存信息')
     # 在有效的时间段内才查询库存
     while current_config.DEBUG or current_config['WATCH_START'] <= datetime.now().time() <= current_config['WATCH_END']:
         search_iphone()
